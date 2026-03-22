@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flor Amarilla - Víctor</title>
+    <title>Flor Amarilla - Base Fiel (Víctor)</title>
     <style>
         body { margin: 0; background-color: black; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        canvas { display: block; }
+        canvas { display: block; border: 1px solid #333; /* Un borde sutil para centrar visualmente */ }
     </style>
 </head>
 <body>
@@ -15,63 +15,89 @@
     <script>
         const canvas = document.getElementById('florCanvas');
         const ctx = canvas.getContext('2d');
-        canvas.width = 800;
+        canvas.width = 800; // Lienzo grande para la flor
         canvas.height = 800;
 
         const centerX = 400;
         const centerY = 400;
+        ctx.lineCap = 'round'; // Líneas suaves como Turtle
 
-        async function dibujarFlor() {
-            // Lógica de los pétalos (Líneas 12-21 del código Python)
+        // Función que imita circle(radius, extent) de Turtle
+        function turtleCircle(r, extent) {
+            ctx.beginPath();
+            const startAngle = Math.PI; // Turtle empieza hacia la izquierda (-x)
+            const endAngle = startAngle + (extent * Math.PI / 180);
+            ctx.arc(r, 0, r, startAngle, endAngle, false); // false = clockwise
+            ctx.stroke();
+        }
+
+        async function dibujarFlorFiel() {
+            // Lógica exacta de los pétalos (for i in range(16), for j in range(18))
             for (let i = 0; i < 16; i++) {
+                // Color exacto HSV 0.125
+                ctx.strokeStyle = "rgb(255, 215, 0)"; 
+                ctx.lineWidth = 1;
+
                 for (let j = 0; j < 18; j++) {
-                    ctx.strokeStyle = "rgb(255, 215, 0)"; // Color equivalente al HSV 0.125
-                    ctx.lineWidth = 1;
-                    
                     ctx.save();
-                    ctx.translate(centerX, centerY - 40); // goto(0, -40)
-                    ctx.rotate((i * Math.PI * 2) / 16 + (i * 24 * Math.PI / 180));
+                    // goto(0, -40) y rotación inicial (equivalente a los rt/lt de Víctor)
+                    ctx.translate(centerX, centerY - 40); 
+                    ctx.rotate((i * Math.PI * 2) / 16);
                     
+                    // Fórmula exacta: radius = 150 - j * 6
                     let r = 150 - j * 6;
-                    // Dibujo del pétalo usando arcos (equivalente a circle(r, 90))
-                    dibujarArcoPétalo(r);
+                    
+                    // Recreación de rt(90), circle(r, 90), lt(90), circle(r, 90), rt(180)
+                    ctx.save();
+                    ctx.rotate(Math.PI / 2); // rt(90)
+                    turtleCircle(r, 90);
+                    ctx.restore();
+
+                    ctx.save();
+                    // El segundo arco necesita una transformación para ir lt(90) y luego circle(r, 90)
+                    ctx.translate(r, -r);
+                    ctx.rotate(-Math.PI / 2); // lt(90)
+                    ctx.rotate(-Math.PI); // rt(180) para el dibujo
+                    turtleCircle(r, 90);
+                    ctx.restore();
                     
                     ctx.restore();
-                    // Control de velocidad (similar a speed 0.25)
-                    await new Promise(res => setTimeout(res, 10));
+                    
+                    // Velocidad fiel (speed 0.25)
+                    // Este "delay" es clave para la animación
+                    await new Promise(res => setTimeout(res, 80)); 
                 }
+                // circle(40, 24) final de cada pétalo para separación
+                ctx.save();
+                ctx.translate(centerX, centerY - 40);
+                ctx.rotate((i * Math.PI * 2) / 16);
+                ctx.rotate(24 * Math.PI / 180); // rotación por el círculo de 24 grados
+                ctx.restore();
             }
 
-            // Lógica del centro (Líneas 25-39 del código Python)
+            // Lógica exacta del centro (for i in range(200))
             const phi = 137.508 * (Math.PI / 180.0);
+            ctx.fillStyle = "brown"; // fillcolor("brown")
+            ctx.strokeStyle = "black"; // Color de la tortuga (borde)
+            
             for (let i = 0; i < 200; i++) {
                 let r = 4 * Math.sqrt(i);
                 let theta = i * phi;
                 let x = r * Math.cos(theta) + centerX;
-                let y = r * Math.sin(theta) + centerY - 40;
+                let y = r * Math.sin(theta) + centerY - 40; // Mismo goto(0, -40)
 
                 ctx.beginPath();
-                ctx.arc(x, y, 4, 0, Math.PI * 2);
-                ctx.fillStyle = "brown"; // fillcolor("brown")
+                // Dibujo de un pequeño círculo para simular el stamp()
+                ctx.arc(x, y, 3, 0, Math.PI * 2); 
                 ctx.fill();
-                ctx.strokeStyle = "black";
                 ctx.stroke();
                 
-                await new Promise(res => setTimeout(res, 20));
+                // Velocidad fiel del centro
+                await new Promise(res => setTimeout(res, 30));
             }
         }
 
-        function dibujarArcoPétalo(r) {
-            ctx.beginPath();
-            // Simulación del movimiento rt(90), circle(r, 90), lt(90), circle(r, 90)
-            ctx.arc(r, 0, r, Math.PI, 1.5 * Math.PI); 
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.arc(0, -r, r, 0.5 * Math.PI, 0);
-            ctx.stroke();
-        }
-
-        dibujarFlor();
+        dibujarFlorFiel();
     </script>
 </body>
 </html>
