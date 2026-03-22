@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flor Amarilla - Exacta</title>
+    <title>Flor Amarilla Especial</title>
     <style>
         body { margin: 0; background: black; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
         canvas { filter: drop-shadow(0 0 8px #FFD700); }
@@ -14,16 +14,15 @@
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
-        canvas.width = 800; canvas.height = 800;
-        const cx = 400, cy = 400;
+        canvas.width = 800; canvas.height = 900;
+        const cx = 400;
+        const cy = 350; // Subimos la flor para que quepa el tallo
 
-        // Esta función dibuja el pétalo usando la matemática de la tortuga
+        // Función para el dibujo de la curva del pétalo (Lógica Víctor)
         function drawPetal(r, angle) {
             ctx.save();
             ctx.translate(cx, cy);
             ctx.rotate(angle);
-            
-            // Lado 1 del pétalo
             ctx.beginPath();
             ctx.strokeStyle = "#FFD700";
             ctx.lineWidth = 1;
@@ -34,8 +33,6 @@
                 ctx.lineTo(x, y);
             }
             ctx.stroke();
-
-            // Lado 2 del pétalo (se cruza para formar la punta)
             ctx.beginPath();
             for (let a = 0; a <= 90; a++) {
                 let rad = a * Math.PI / 180;
@@ -48,30 +45,66 @@
         }
 
         async function animate() {
-            // Dibujar pétalos (16 pétalos, 18 líneas cada uno)
+            // 1. DIBUJAR TALLO Y HOJAS
+            ctx.strokeStyle = "#228B22"; // Verde bosque
+            ctx.lineWidth = 10;
+            ctx.lineCap = "round";
+            
+            // Crece el tallo
+            for (let h = 900; h >= cy + 20; h -= 5) {
+                ctx.beginPath();
+                ctx.moveTo(cx, 900);
+                ctx.lineTo(cx, h);
+                ctx.stroke();
+                if (h % 20 === 0) await new Promise(r => setTimeout(r, 10));
+            }
+
+            // Dibuja 2 hojas
+            ctx.lineWidth = 5;
+            for (let i = 0; i < 30; i++) {
+                // Hoja izquierda
+                ctx.beginPath(); ctx.arc(cx - 30, cy + 150, i, 0, Math.PI); ctx.stroke();
+                // Hoja derecha
+                ctx.beginPath(); ctx.arc(cx + 30, cy + 100, i, 0, Math.PI); ctx.stroke();
+                await new Promise(r => setTimeout(r, 20));
+            }
+
+            // 2. DIBUJAR PÉTALOS (Mismo ritmo lento)
             for (let i = 0; i < 16; i++) {
                 for (let j = 0; j < 18; j++) {
                     let r = 150 - j * 6;
                     drawPetal(r, (i * Math.PI * 2) / 16);
-                    // Velocidad para que se vea el "tejido"
-                    if (j % 3 === 0) await new Promise(r => setTimeout(r, 10));
+                    await new Promise(r => setTimeout(r, 40));
                 }
-                await new Promise(r => setTimeout(r, 40));
+                await new Promise(r => setTimeout(r, 100));
             }
 
-            // Dibujar centro (Phyllotaxis exacta de Víctor)
+            // 3. DIBUJAR CENTRO CON INICIALES
             const phi = 137.508 * (Math.PI / 180);
-            for (let n = 0; n < 200; n++) {
-                let r = 4 * Math.sqrt(n);
+            for (let n = 0; n < 220; n++) {
+                let r = 4.5 * Math.sqrt(n);
                 let theta = n * phi;
+                let x = cx + r * Math.cos(theta);
+                let y = cy + r * Math.sin(theta);
+                
                 ctx.beginPath();
-                ctx.arc(cx + r * Math.cos(theta), cy + r * Math.sin(theta), 3.5, 0, 2 * Math.PI);
+                ctx.arc(x, y, 4, 0, 2 * Math.PI);
                 ctx.fillStyle = "#4b2c20";
                 ctx.fill();
                 ctx.strokeStyle = "black";
                 ctx.lineWidth = 0.5;
                 ctx.stroke();
-                if (n % 10 === 0) await new Promise(r => setTimeout(r, 10));
+
+                // Justo al final de formar el centro, ponemos el texto
+                if (n === 219) {
+                    ctx.fillStyle = "#FFD700";
+                    ctx.font = "bold 35px Arial";
+                    ctx.textAlign = "center";
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = "gold";
+                    ctx.fillText("OM ❤️", cx, cy + 12);
+                }
+                await new Promise(r => setTimeout(r, 50));
             }
         }
 
