@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flor Amarilla - Víctor</title>
+    <style>
+        body { margin: 0; background-color: black; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <canvas id="florCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('florCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 800;
+        canvas.height = 800;
+
+        const centerX = 400;
+        const centerY = 400;
+
+        async function dibujarFlor() {
+            // Lógica de los pétalos (Líneas 12-21 del código Python)
+            for (let i = 0; i < 16; i++) {
+                for (let j = 0; j < 18; j++) {
+                    ctx.strokeStyle = "rgb(255, 215, 0)"; // Color equivalente al HSV 0.125
+                    ctx.lineWidth = 1;
+                    
+                    ctx.save();
+                    ctx.translate(centerX, centerY - 40); // goto(0, -40)
+                    ctx.rotate((i * Math.PI * 2) / 16 + (i * 24 * Math.PI / 180));
+                    
+                    let r = 150 - j * 6;
+                    // Dibujo del pétalo usando arcos (equivalente a circle(r, 90))
+                    dibujarArcoPétalo(r);
+                    
+                    ctx.restore();
+                    // Control de velocidad (similar a speed 0.25)
+                    await new Promise(res => setTimeout(res, 10));
+                }
+            }
+
+            // Lógica del centro (Líneas 25-39 del código Python)
+            const phi = 137.508 * (Math.PI / 180.0);
+            for (let i = 0; i < 200; i++) {
+                let r = 4 * Math.sqrt(i);
+                let theta = i * phi;
+                let x = r * Math.cos(theta) + centerX;
+                let y = r * Math.sin(theta) + centerY - 40;
+
+                ctx.beginPath();
+                ctx.arc(x, y, 4, 0, Math.PI * 2);
+                ctx.fillStyle = "brown"; // fillcolor("brown")
+                ctx.fill();
+                ctx.strokeStyle = "black";
+                ctx.stroke();
+                
+                await new Promise(res => setTimeout(res, 20));
+            }
+        }
+
+        function dibujarArcoPétalo(r) {
+            ctx.beginPath();
+            // Simulación del movimiento rt(90), circle(r, 90), lt(90), circle(r, 90)
+            ctx.arc(r, 0, r, Math.PI, 1.5 * Math.PI); 
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(0, -r, r, 0.5 * Math.PI, 0);
+            ctx.stroke();
+        }
+
+        dibujarFlor();
+    </script>
+</body>
+</html>
