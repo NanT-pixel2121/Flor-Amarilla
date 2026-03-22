@@ -3,152 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Girasol Mágico para OM ❤️</title>
+    <title>Para mi princesa ❤️</title>
     <style>
         body { margin: 0; background: black; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: 'Segoe UI', Arial, sans-serif; }
         #canvas { filter: drop-shadow(0 0 12px #FFD700); z-index: 10; }
         #bgCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        
+        #playBtn {
+            position: absolute; z-index: 100; padding: 15px 35px;
+            background: rgba(0, 0, 0, 0.8); color: gold;
+            border: 2px solid gold; border-radius: 50px;
+            cursor: pointer; font-size: 1.3rem; transition: 0.4s;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+        }
+        #playBtn:hover { background: gold; color: black; transform: scale(1.1); }
     </style>
 </head>
 <body>
+    <button id="playBtn">Presiona acá, princesa ❤️</button>
+    <div id="player" style="display:none"></div>
+
     <canvas id="bgCanvas"></canvas>
     <canvas id="canvas"></canvas>
     
     <script>
+        // CONFIGURACIÓN DE YOUTUBE (CANCIÓN COMPLETA)
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        var player;
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '0', width: '0',
+                videoId: 'Q5gb3dbnsqI', 
+                playerVars: { 'start': 0, 'autoplay': 0, 'controls': 0, 'rel': 0 },
+                events: { 'onReady': onPlayerReady }
+            });
+        }
+
+        function onPlayerReady(event) {
+            document.getElementById('playBtn').addEventListener('click', function() {
+                this.style.display = 'none';
+                player.playVideo();
+                initParticles();
+                animateParticles();
+                animateFlower();
+            });
+        }
+
+        // --- LÓGICA VISUAL ---
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         const bgCanvas = document.getElementById('bgCanvas');
         const bgCtx = bgCanvas.getContext('2d');
-        
-        bgCanvas.width = window.innerWidth;
-        bgCanvas.height = window.innerHeight;
+        bgCanvas.width = window.innerWidth; bgCanvas.height = window.innerHeight;
         canvas.width = 800; canvas.height = 900;
-        
-        const cx = 400; const cy = 350; 
+        const cx = 400; const cy = 350;
 
-        // 1. SISTEMA DE PARTÍCULAS
         const particles = [];
-        function initParticles() { for (let i = 0; i < 150; i++) { particles.push({ x: Math.random() * bgCanvas.width, y: Math.random() * bgCanvas.height, size: Math.random() * 2 + 1, speed: Math.random() * 0.5 + 0.1, opacity: Math.random() * 0.8 + 0.2 }); } }
+        function initParticles() { for (let i = 0; i < 150; i++) { particles.push({ x: Math.random() * bgCanvas.width, y: Math.random() * bgCanvas.height, size: Math.random() * 2 + 1, speed: Math.random() * 0.4 + 0.1, opacity: Math.random() * 0.8 + 0.2 }); } }
         function animateParticles() { bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height); bgCtx.fillStyle = "#FFD700"; particles.forEach(p => { p.y += p.speed; if (p.y > bgCanvas.height) { p.y = -10; p.x = Math.random() * bgCanvas.width; } bgCtx.globalAlpha = p.opacity; bgCtx.beginPath(); bgCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2); bgCtx.fill(); }); bgCtx.globalAlpha = 1; requestAnimationFrame(animateParticles); }
 
-        // 2. FUNCIONES DE DIBUJO (Mismo código detallado)
         function drawPetal(r, angle) { ctx.save(); ctx.translate(cx, cy); ctx.rotate(angle); ctx.beginPath(); ctx.strokeStyle = "#FFD700"; ctx.lineWidth = 1.2; ctx.globalAlpha = 0.8; for (let a = 0; a <= 90; a++) { let rad = a * Math.PI / 180; let x = r * Math.cos(rad) - r; let y = r * Math.sin(rad); ctx.lineTo(x, y); } ctx.stroke(); ctx.beginPath(); for (let a = 0; a <= 90; a++) { let rad = a * Math.PI / 180; let x = -r * Math.cos(rad) + r; let y = r * Math.sin(rad); ctx.lineTo(x, y); } ctx.stroke(); ctx.restore(); }
-        async function drawDetailedStem() { ctx.strokeStyle = "#2E8B57"; ctx.lineWidth = 2; ctx.lineCap = "round"; for (let h = 900; h >= cy + 10; h -= 3) { ctx.beginPath(); ctx.moveTo(cx, 900); ctx.lineTo(cx, h); ctx.stroke(); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(cx-3, 900); ctx.lineTo(cx-3, h+5); ctx.stroke(); ctx.beginPath(); ctx.moveTo(cx+3, 900); ctx.lineTo(cx+3, h+5); ctx.stroke(); ctx.lineWidth = 2; await new Promise(r => setTimeout(r, 20)); } }
+        
+        async function drawDetailedStem() {
+            ctx.strokeStyle = "#2E8B57"; ctx.lineWidth = 2;
+            for (let h = 900; h >= cy + 10; h -= 3) {
+                ctx.beginPath(); ctx.moveTo(cx, 900); ctx.lineTo(cx, h); ctx.stroke();
+                await new Promise(r => setTimeout(r, 20));
+            }
+        }
 
-        // 3. NUEVA FUNCIÓN DE HOJAS DETALLADAS (Fade-in y Nervaduras)
         async function drawDetailedLeaves() {
-            ctx.strokeStyle = "#2E8B57"; // Verde bosque
-            const leafBaseY = cy + 150;
-            const leafWidth = 60;
-            const leafHeight = 80;
-
-            // FADE-IN (Transparencia gradual)
+            ctx.strokeStyle = "#2E8B57"; const leafWidth = 60; const leafHeight = 80;
             for (let alpha = 0; alpha <= 0.9; alpha += 0.05) {
                 ctx.globalAlpha = alpha;
-                ctx.lineWidth = 2;
-
-                // Dibuja la forma de gota de la hoja izquierda
-                ctx.save();
-                ctx.translate(cx - 50, leafBaseY);
-                ctx.rotate(-Math.PI / 6);
-                
-                ctx.beginPath();
-                ctx.moveTo(0, 0); // Base de la hoja en el tallo
-                ctx.bezierCurveTo(-leafWidth / 2, -leafHeight / 2, -leafWidth, leafHeight / 2, 0, leafHeight); // Punta curva
-                ctx.bezierCurveTo(leafWidth, leafHeight / 2, leafWidth / 2, -leafHeight / 2, 0, 0); // Regresa
-                ctx.stroke();
-
-                // Nervadura central (Nace del tallo)
-                ctx.lineWidth = 0.8;
-                ctx.beginPath();
-                ctx.moveTo(0, 0);
-                ctx.lineTo(0, leafHeight - 5);
-                ctx.stroke();
-
-                // Nervaduras secundarias (Se tejen suavemente)
-                if (alpha > 0.4) {
-                    ctx.lineWidth = 0.5;
-                    for (let i = 1; i <= 3; i++) {
-                        ctx.beginPath();
-                        ctx.moveTo(0, leafHeight * i / 4);
-                        ctx.lineTo(-leafWidth / (2*i), leafHeight * i / 4 + 10);
-                        ctx.stroke();
-                        ctx.beginPath();
-                        ctx.moveTo(0, leafHeight * i / 4);
-                        ctx.lineTo(leafWidth / (2*i), leafHeight * i / 4 + 10);
-                        ctx.stroke();
-                    }
-                }
-                ctx.restore();
-
-                // Dibuja la forma de gota de la hoja derecha
-                ctx.save();
-                ctx.translate(cx + 50, leafBaseY - 50); // Un poco más alta
-                ctx.rotate(Math.PI / 6);
-                
-                ctx.beginPath();
-                ctx.moveTo(0, 0);
-                ctx.bezierCurveTo(leafWidth / 2, -leafHeight / 2, leafWidth, leafHeight / 2, 0, leafHeight);
-                ctx.bezierCurveTo(-leafWidth, leafHeight / 2, -leafWidth / 2, -leafHeight / 2, 0, 0);
-                ctx.stroke();
-
-                ctx.lineWidth = 0.8;
-                ctx.beginPath();
-                ctx.moveTo(0, 0);
-                ctx.lineTo(0, leafHeight - 5);
-                ctx.stroke();
-
-                if (alpha > 0.4) {
-                    ctx.lineWidth = 0.5;
-                    for (let i = 1; i <= 3; i++) {
-                        ctx.beginPath();
-                        ctx.moveTo(0, leafHeight * i / 4);
-                        ctx.lineTo(leafWidth / (2*i), leafHeight * i / 4 + 10);
-                        ctx.stroke();
-                        ctx.beginPath();
-                        ctx.moveTo(0, leafHeight * i / 4);
-                        ctx.lineTo(-leafWidth / (2*i), leafHeight * i / 4 + 10);
-                        ctx.stroke();
-                    }
-                }
-                ctx.restore();
-
-                await new Promise(r => setTimeout(r, 60)); // Tiempo suave para el fade-in
+                ctx.save(); ctx.translate(cx - 50, cy + 150); ctx.rotate(-Math.PI / 6);
+                ctx.beginPath(); ctx.moveTo(0, 0); ctx.bezierCurveTo(-leafWidth/2, -leafHeight/2, -leafWidth, leafHeight/2, 0, leafHeight); ctx.bezierCurveTo(leafWidth, leafHeight/2, leafWidth/2, -leafHeight/2, 0, 0); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0, leafHeight-5); ctx.stroke(); ctx.restore();
+                ctx.save(); ctx.translate(cx + 50, cy + 100); ctx.rotate(Math.PI / 6);
+                ctx.beginPath(); ctx.moveTo(0, 0); ctx.bezierCurveTo(leafWidth/2, -leafHeight/2, leafWidth, leafHeight/2, 0, leafHeight); ctx.bezierCurveTo(-leafWidth, leafHeight/2, -leafWidth/2, -leafHeight/2, 0, 0); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0, leafHeight-5); ctx.stroke(); ctx.restore();
+                await new Promise(r => setTimeout(r, 50));
             }
-            ctx.globalAlpha = 1; // Resetea
+            ctx.globalAlpha = 1;
         }
 
         async function animateFlower() {
             await drawDetailedStem();
-            await drawDetailedLeaves(); // NUEVO: Las hojas se revelan suavemente
-
+            await drawDetailedLeaves();
             for (let i = 0; i < 16; i++) {
                 for (let j = 0; j < 18; j++) {
                     let r = 150 - j * 6;
                     drawPetal(r, (i * Math.PI * 2) / 16);
                     await new Promise(r => setTimeout(r, 60)); 
                 }
-                await new Promise(r => setTimeout(r, 150));
+                await new Promise(r => setTimeout(r, 100));
             }
-
             const phi = 137.508 * (Math.PI / 180);
             for (let n = 0; n < 230; n++) {
-                let r = 4.8 * Math.sqrt(n);
-                let theta = n * phi;
+                let r = 4.8 * Math.sqrt(n); let theta = n * phi;
                 ctx.beginPath(); ctx.arc(cx + r * Math.cos(theta), cy + r * Math.sin(theta), 4, 0, 2 * Math.PI); ctx.fillStyle = "#4b2c20"; ctx.fill(); ctx.strokeStyle = "black"; ctx.stroke();
-                
                 ctx.fillStyle = "#FFD700"; ctx.font = "bold 38px 'Segoe UI', Arial"; ctx.textAlign = "center"; ctx.shadowBlur = 15; ctx.shadowColor = "gold";
                 if (n === 215) ctx.fillText("O", cx - 25, cy + 15);
                 if (n === 225) ctx.fillText("M", cx + 5, cy + 15);
                 if (n === 229) { ctx.font = "38px Arial"; ctx.fillText("❤️", cx + 45, cy + 15); }
-                await new Promise(r => setTimeout(r, 60)); 
+                await new Promise(r => setTimeout(r, 55)); 
             }
         }
-
-        initParticles();
-        animateParticles();
-        animateFlower();
-
     </script>
 </body>
 </html>
